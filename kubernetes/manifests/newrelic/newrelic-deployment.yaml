@@ -23,6 +23,17 @@ spec:
       labels:
         app: dotnet-demoapp
     spec:
+      initContainers:
+      - name: newrelic-dotnet-sidecar
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh","-c","wget -qO- https://download.newrelic.com/dot_net_agent/latest_release/newrelic-netcore20-agent_$(AGENT_VERSION)_amd64.tar.gz | tar xvzf - -C /agent-dir"] 
+        env:
+        - name: AGENT_VERSION
+          value: "8.39.0.0"
+        volumeMounts:
+        - name: agentdir
+          mountPath: "/agent-dir"
       containers:
       - name: dotnet-demoapp
         image: bpschmitt/dotnet-demoapp:1.4.0
@@ -47,17 +58,6 @@ spec:
               key: nrlicensekey
         - name: NEW_RELIC_APP_NAME
           value: "dotnet-demo-app"
-      initContainers:
-      - name: newrelic-dotnet-sidecar
-        image: alpine:latest
-        imagePullPolicy: IfNotPresent
-        command: ["sh","-c","wget -qO- https://download.newrelic.com/dot_net_agent/latest_release/newrelic-netcore20-agent_$(AGENT_VERSION)_amd64.tar.gz | tar xvzf - -C /agent-dir"] 
-        env:
-        - name: AGENT_VERSION
-          value: "8.39.0.0"
-        volumeMounts:
-        - name: agentdir
-          mountPath: "/agent-dir"
       volumes:
       - name: agentdir
         emptyDir: {}
